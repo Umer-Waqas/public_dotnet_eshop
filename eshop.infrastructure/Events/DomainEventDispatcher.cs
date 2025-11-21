@@ -1,4 +1,5 @@
-﻿using eshop.application.Interfaces;
+﻿using eshop.application.EventHandler;
+using eshop.application.Interfaces;
 using eshop.domain.common;
 using Microsoft.Extensions.DependencyInjection;
 using System;
