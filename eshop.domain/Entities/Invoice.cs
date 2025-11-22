@@ -4,13 +4,13 @@ using eshop.domain.Exceptions;
 using eshop.domain.ValueObjects;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace eshop.domain.Entities
 {
-    // Domain/Entities/Invoice.cs
     public class Invoice : AggregateRoot
     {
         public Guid Id { get; private set; }
@@ -50,19 +50,4 @@ namespace eshop.domain.Entities
             AddDomainEvent(new InvoiceCreatedEvent(Id, CustomerId, Lines.Select(l => (l.ProductId, l.Quantity)).ToList()));
         }
     }
-
-    public class InvoiceLine
-    {
-        public Guid ProductId { get; private set; }
-        public Money Price { get; private set; }
-        public int Quantity { get; private set; }
-
-        public InvoiceLine(Guid productId, Money price, int quantity)
-        {
-            ProductId = productId;
-            Price = price;
-            Quantity = quantity;
-        }
-    }
-
 }

@@ -19,31 +19,7 @@ namespace eshop.infrastructure.Persistence
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<Product>(b =>
-            {
-                b.HasKey(p => p.Id);
-                b.OwnsOne(typeof(Money), "Price"); // value object mapping
-                b.Property<int>("Stock");
-                b.Property<bool>("IsActive");
-                b.Property(p => p.Name);
-                b.Property(p => p.Sku);
-            });
-
-            // Invoice mapping: store lines as owned collection or separate table
-            modelBuilder.Entity<Invoice>(b =>
-            {
-                b.HasKey(i => i.Id);
-                b.Property(i => i.CustomerId);
-                b.Property(i => i.CreatedAt);
-
-                b.OwnsMany(typeof(InvoiceLine), "_lines", lb =>
-                {
-                    lb.WithOwner().HasForeignKey("InvoiceId");
-                    lb.Property<Guid>("ProductId");
-                    lb.Property<int>("Quantity");
-                    lb.OwnsOne(typeof(Money), "Price");
-                });
-            });
+            modelBuilder.ApplyConfigurationsFromAssembly(typeof(EshopDbContext).Assembly);
         }
     }
 }
