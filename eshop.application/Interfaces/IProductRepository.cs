@@ -10,6 +10,9 @@ namespace eshop.application.Interfaces
     public interface IProductRepository
     {
         Task<Product?> GetByIdAsync(Guid id, CancellationToken ct = default);
+        Task<List<Product>> GetByIdsAsync(IEnumerable<Guid> ids, CancellationToken ct = default);
         Task UpdateAsync(Product product, CancellationToken ct = default);
+        Task UpdateRangeAsync(IEnumerable<Product> products, CancellationToken ct = default);
+
     }
 }

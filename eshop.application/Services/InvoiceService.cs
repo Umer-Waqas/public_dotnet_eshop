@@ -28,27 +28,45 @@ namespace eshop.application.Services
 
         public async Task<InvoiceDto> CreateInvoiceAsync(CreateInvoiceRequest request, CancellationToken ct = default)
         {
-            // validate is typically done before calling service (e.g. pipeline)
+            //// validate is typically done before calling service (e.g. pipeline)
+            //var invoice = new Invoice(request.CustomerId);
+
+            //// load products and apply domain behaviour (reduce stock via Domain entity)
+            //foreach (var item in request.Items)
+            //{
+            //    var product = await _productRepo.GetByIdAsync(item.ProductId, ct)
+            //                  ?? throw new DomainException($"Product {item.ProductId} not found");
+
+            //    // business rule in domain
+            //    product.ReduceStock(item.Quantity);
+
+            //    invoice.AddLine(product.Id, product.Price, item.Quantity);
+
+            //    // persist changed product state via repo (but we will save after all ops)
+            //    await _productRepo.UpdateAsync(product, ct);
+            //}
+            var productIds = request.Items.Select(i => i.ProductId).ToList();
+
+            var products = await _productRepo.GetByIdsAsync(productIds, ct);
+            var dict = products.ToDictionary(p => p.Id);
+
             var invoice = new Invoice(request.CustomerId);
 
-            // load products and apply domain behaviour (reduce stock via Domain entity)
             foreach (var item in request.Items)
             {
-                var product = await _productRepo.GetByIdAsync(item.ProductId, ct)
-                              ?? throw new DomainException($"Product {item.ProductId} not found");
+                var product = dict[item.ProductId];
 
-                // business rule in domain
-                product.ReduceStock(item.Quantity);
+                product.ReduceStock(item.Quantity); // domain rule
 
                 invoice.AddLine(product.Id, product.Price, item.Quantity);
-
-                // persist changed product state via repo (but we will save after all ops)
-                await _productRepo.UpdateAsync(product, ct);
             }
 
-            invoice.Complete();
-
+            // persist all changes once
+            await _productRepo.UpdateRangeAsync(products, ct);
             await _invoiceRepo.AddAsync(invoice, ct);
+
+
+            invoice.Complete();
 
             // Dispatch domain events (InvoiceCreated, and StockReduced created when ReduceStock called)
             var events = invoice.DomainEvents;
